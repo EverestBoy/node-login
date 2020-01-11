@@ -1,9 +1,12 @@
 const router = require('express').Router();
 const User = require('../model/User');
+const Device = require('../model/Device');
 const {registerValidation} = require('../validation');
 const { loginValidation } = require('../validation');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const verify = require('./verifytoken');
+
 
 
 
@@ -30,7 +33,9 @@ router.post('/register', async(req,res) => {
     const user = new User({
         name: req.body.name,
         email: req.body.email,
-        password: hashPassword
+        password: hashPassword,
+        phone: req.body.phone,
+        image: req.body.image
     });
     try{
         const savedUser = await user.save();
@@ -40,12 +45,30 @@ router.post('/register', async(req,res) => {
     }
 });
 
-// LOGIN
+// Register device id
+router.post('/registerDevice', async(req, res) => {
+    const device = new Device({
+        deviceId: req.body.deviceId,
+        userId: req.body.userId
+    });
+    try{
+        const savedDevice = await device.save();
+        res.send({device: device._id})
+    }
+    catch(err){
+        res.status(400).send(err);
+    }
+});
+
+
+// LOGIN WITH EMAIL PASSWORD
 router.post('/login', async(req,res) => {
+    
 
     // Validating the request with model
     const {error} = loginValidation(req.body);
     if(error) res.status(400).send(error.details[0].message);
+
 
     // Checking if email exists
     const user = await User.findOne({email: req.body.email});
@@ -55,17 +78,25 @@ router.post('/login', async(req,res) => {
     const validPass = await bcrypt.compare(req.body.password, user.password);
     if(!validPass) res.status(400).send("Password is wrong");
 
+
     // Create and assign an token
     const token = jwt.sign({_id:user._id}, process.env.TOKEN_SECRET);
-    res.header('auth-token', token).send(token)
-
-
-
-
-
-
+    res.header('auth-token', token).send(token);
 })
 
+// LOGIN WITH TOKEN
+router.get('/tokenLogin', verify, async(req,res) => {
+    const userDetail = await  User.findOne({_id: req.userVerified._id});
+    res.json({
+        success: true,
+        user: {
+            name: userDetail.name,
+            email: userDetail.email,
+            phone: userDetail.phone,
+            image: userDetail.image
+        }
+    });
+});
 
 
 

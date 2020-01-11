@@ -1,7 +1,8 @@
 const jwt = require('jsonwebtoken');
 
 module.exports = function (req, res, next ) {
-    const token = req.header('auth-token');
+    const token = req.header('jwt-token');
+    console.log("Token is "+token);
     if(!token) return res.status(401).send(res.json({
         success: false,
         message: "Invalid Credentials. Please make sure you entered the right information and you have verified your email address."
@@ -10,7 +11,7 @@ module.exports = function (req, res, next ) {
 
     try{
         const verified = jwt.verify(token, process.env.TOKEN_SECRET);
-        req.user = verified;
+        req.userVerified = verified;
         next();
     }
     catch(err){

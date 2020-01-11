@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const User = require('../model/User');
-const verify = require('./verifytoken')
+const verify = require('./verifytoken');
 
 router.get('/',verify, async (req,res) => {
     // res.json({
@@ -14,7 +14,9 @@ router.get('/',verify, async (req,res) => {
         success: true,
         user: {
             name: userDetail.name,
-            email: userDetail.email
+            email: userDetail.email,
+            phone: userDetail.phone,
+            image: userDetail.image
         }
     });
 });
