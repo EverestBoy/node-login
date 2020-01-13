@@ -1,20 +1,23 @@
 const router = require('express').Router();
 const User = require('../model/User');
 const verify = require('./verifyJwt');
-const Referral = require('../model/Referral')
-const { referralValidation } = require('../validation')
-const stringify = require('json-stringify-safe')
+const Referral = require('../model/Referral');
+const { referralValidation } = require('../validation');
+const stringify = require('json-stringify-safe');
+
+const referralData = require('./getData/referralData');
+const paginate = require('./pagination');
 
 
 router.post('/new',verify, async (req,res) => {
-    
 
     const {error} = referralValidation(req.body);
     
     if(error) res.status(400).send("Validation error")
+    // res.send("Success");
 
 
-    const userDetail = await User.findOne({_id: req.userVerified._id});
+    const userDetail = await User.findOne({_id: req.userId});
 
 
     if(!userDetail) res.status(400).send("User dont exist")
@@ -48,6 +51,15 @@ router.post('/new',verify, async (req,res) => {
             image: userDetail.image
         }
     });
+});
+
+router.get('/page',async(req,res)=>{
+    res.send("hello"+req.query.asd)
+});
+
+router.get('/all', verify, referralData , paginate, async(req,res) => {
+
+    res.json(req.results)
 });
 
 
@@ -106,12 +118,28 @@ router.post('/edit', verify, async(req,res) => {
 
 router.post('/delete', verify, async(req,res) => {
 
-    const {error} = referralValidation(req.body);
-    if(error) res.status(400).send("Validation error")
+    console.log("Id " +req.body.referralId);
 
-    const userDetail = await User.findOne({_id: req.userVerified._id});
-    if(!userDetail) res.status(400).send("User dont exist")
+    const refDetail = await Referral.findOne({_id: req.body.referralId});
+    
+    if(!refDetail) res.status(400).send("Referral dont exist")
 
+    if( req.userId != refDetail.user_id) res.status(400).send("Unauthorised access");
+
+    try{
+        await Referral.findByIdAndDelete(
+            req.body.referralId
+        );
+        
+        
+    }
+    catch(err){
+        res.status(400).send(err);
+    }
+    res.json({
+        success: true,
+        deletedReferral: refDetail
+    })
 
 });
 

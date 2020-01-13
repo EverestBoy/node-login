@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const User = require('../model/User');
-const verify = require('./verifytoken');
+const Referral = require('../model/Referral')
+const verify = require('./verifyJwt')
 
 router.get('/',verify, async (req,res) => {
     // res.json({
@@ -9,14 +10,11 @@ router.get('/',verify, async (req,res) => {
     //         description: "you cannot access this data"
     //     }
     // });
-    const userDetail = await  User.findOne({_id: req.user._id});
+    const userDetail = await  Referral.find({used_id: req.userId});
     res.json({
         success: true,
-        user: {
-            name: userDetail.name,
-            email: userDetail.email,
-            phone: userDetail.phone,
-            image: userDetail.image
+        data: {
+            userDetail
         }
     });
 });

@@ -12,6 +12,12 @@ const deviceSchema = new mongoose.Schema({
         max: 255,
         min: 6
     },
+    deviceName: {
+        type: String,
+        required: true,
+        max: 255,
+        min: 1
+    }
     
 });
 
